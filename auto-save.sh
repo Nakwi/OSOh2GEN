@@ -1,45 +1,34 @@
 #!/bin/bash
 
-# Chemins des dossiers
-SOURCE_DIR="/var/www/html/code2Gen/builds"
-DEST_DIR="/OSOh2GEN/Prompt"  # Dossier de destination correct
-GIT_DIR="/OSOh2GEN"  # Répertoire du dépôt Git
-BRANCH="auto-save"
-COMMIT_MESSAGE="Auto-save des builds générés"
+# Variables
+REPO_PATH="/OSOh2GEN"  # Remplace par le chemin absolu de ton dossier OSOh2GEN
+BRANCH_NAME="auto-save"
+COMMIT_MESSAGE="Auto-save $(date '+%Y-%m-%d %H:%M:%S')"
 
-# Vérifier si le dossier de destination existe
-if [ ! -d "$DEST_DIR" ]; then
-    echo "Erreur : Le dossier $DEST_DIR n'existe pas."
-    exit 1
-fi
+# Naviguer dans le répertoire du dépôt
+cd "$REPO_PATH" || { echo "Le chemin $REPO_PATH est introuvable."; exit 1; }
 
-# Déplacer les fichiers avec sudo
-echo "Déplacement des fichiers de $SOURCE_DIR vers $DEST_DIR avec sudo..."
-sudo mv /var/www/html/code2Gen/builds/* /OSOh2GEN/Prompt || echo "Aucun fichier à déplacer."
-echo "Déplacement terminé."
-
-# Se déplacer dans le répertoire du dépôt Git
-cd "$GIT_DIR" || exit 1
-
-# S'assurer qu'on est bien dans un dépôt Git
+# Vérifier si le dossier est un dépôt Git
 if [ ! -d ".git" ]; then
-    echo "Erreur : Ce n'est pas un dépôt Git."
+    echo "Le dossier $REPO_PATH n'est pas un dépôt Git."
     exit 1
 fi
 
-# Basculer sur la branche auto-sav
-git checkout "$BRANCH" || git checkout -b "$BRANCH"
+# Passer à la branche auto-save ou la créer si elle n'existe pas
+git checkout $BRANCH_NAME 2>/dev/null || git checkout -b $BRANCH_NAME
 
-# Ajouter les fichiers déplacés dans Git
-echo "Ajout des fichiers dans Git..."
-git add "$DEST_DIR"
-if git commit -m "$COMMIT_MESSAGE"; then
-    echo "Les modifications ont été committées dans la branche $BRANCH."
+# Ajouter les fichiers HTML du dossier 'safe' uniquement
+git add safe/*.html
+
+# Vérifier si des fichiers ont été ajoutés (évite les commits vides)
+if [ -n "$(git diff --cached)" ]; then
+    # Commit avec un message horodaté
+    git commit -m "$COMMIT_MESSAGE"
+    echo "Commit réalisé avec succès : $COMMIT_MESSAGE"
+
+    # Push vers la branche auto-save
+    git push origin $BRANCH_NAME
+    echo "Les modifications ont été poussées vers la branche $BRANCH_NAME."
 else
-    echo "Aucune modification à committer."
+    echo "Aucune modification détectée, aucun commit n'a été réalisé."
 fi
-
-# Optionnel : Pousser les changements sur le dépôt distant
-echo "Poussée des changements sur la branche distante..."
-git push origin "$BRANCH"
-echo "Les modifications ont été poussées avec succès."
