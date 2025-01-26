@@ -1,30 +1,45 @@
 #!/bin/bash
 
-# Variables
-BUILD_DIR="/var/www/html/code2Gen/builds"  # Répertoire source des fichiers générés
-REPO_DIR="/OSOh2GEN/prompt"               # Répertoire du dépôt Git
-BRANCH="auto-save"                        # Branche dédiée aux sauvegardes
+# Chemins des dossiers
+SOURCE_DIR="/var/www/html/code2Gen/builds"
+DEST_DIR="/OSOh2GEN/Prompt"  # Dossier de destination correct
+GIT_DIR="/OSOh2GEN"  # Répertoire du dépôt Git
+BRANCH="auto-save"
+COMMIT_MESSAGE="Auto-save des builds générés"
 
-# Étape 1 : Déplacer les fichiers de /builds vers /OSOh2GEN/prompt
-echo "Déplacement des fichiers de $BUILD_DIR vers $REPO_DIR..."
-mv $BUILD_DIR/* $REPO_DIR/ || { echo "Erreur : Impossible de déplacer les fichiers."; exit 1; }
+# Vérifier si le dossier de destination existe
+if [ ! -d "$DEST_DIR" ]; then
+    echo "Erreur : Le dossier $DEST_DIR n'existe pas."
+    exit 1
+fi
 
-# Étape 2 : Se déplacer dans le répertoire du dépôt
-cd $REPO_DIR || { echo "Erreur : dépôt introuvable."; exit 1; }
+# Déplacer les fichiers avec sudo
+echo "Déplacement des fichiers de $SOURCE_DIR vers $DEST_DIR avec sudo..."
+sudo mv /var/www/html/code2Gen/builds/* /OSOh2GEN/Prompt || echo "Aucun fichier à déplacer."
+echo "Déplacement terminé."
 
-# Étape 3 : Basculer sur la branche auto-save
-git checkout $BRANCH || { echo "Erreur : impossible de basculer sur $BRANCH."; exit 1; }
+# Se déplacer dans le répertoire du dépôt Git
+cd "$GIT_DIR" || exit 1
 
-# Étape 4 : Ajouter les fichiers déplacés au suivi Git
-echo "Ajout des fichiers au suivi Git..."
-git add . || { echo "Erreur : aucun fichier à ajouter."; exit 0; }
+# S'assurer qu'on est bien dans un dépôt Git
+if [ ! -d ".git" ]; then
+    echo "Erreur : Ce n'est pas un dépôt Git."
+    exit 1
+fi
 
-# Étape 5 : Faire un commit avec un message dynamique
-echo "Création du commit..."
-git commit -m "Backup automatique des prompts du $(date '+%Y-%m-%d %H:%M:%S')" || { echo "Aucun changement détecté."; exit 0; }
+# Basculer sur la branche auto-sav
+git checkout "$BRANCH" || git checkout -b "$BRANCH"
 
-# Étape 6 : Pousser les modifications vers la branche auto-save
-echo "Pousser les modifications vers la branche $BRANCH..."
-git push origin $BRANCH || { echo "Erreur : impossible de pousser les modifications."; exit 1; }
+# Ajouter les fichiers déplacés dans Git
+echo "Ajout des fichiers dans Git..."
+git add "$DEST_DIR"
+if git commit -m "$COMMIT_MESSAGE"; then
+    echo "Les modifications ont été committées dans la branche $BRANCH."
+else
+    echo "Aucune modification à committer."
+fi
 
-echo "Sauvegarde et push automatiques terminés avec succès !"
+# Optionnel : Pousser les changements sur le dépôt distant
+echo "Poussée des changements sur la branche distante..."
+git push origin "$BRANCH"
+echo "Les modifications ont été poussées avec succès."
