@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pac-DEMO</title>
+    <style>
+        body {
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .pacman {
+            width: 100px;
+            height: 100px;
+            background-color: yellow;
+            border-radius: 50%;
+            position: relative;
+            animation: move 2s linear infinite;
+        }
+        .pacman::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            background-color: black;
+            border-radius: 50%;
+            transform-origin: 50% 50%;
+        }
+        @keyframes move {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(50px) rotate(360deg); }
+            100% { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="pacman"></div>
+    <script>
+        // Add any JavaScript functionality here if needed.
+        // For example, you could add more complex animations or interactions.
+        // This is a simple example that just displays a Pac-Man shape.
+    </script>
+</body>
+</html>
